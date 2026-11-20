@@ -1,0 +1,7 @@
+name: t
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - run: date -u; hostname; curl -s -m10 https://api.ipify.org; echo; timeout 8 bash -c 'cat </dev/null >/dev/tcp/134.199.245.2/22' && echo TCP_OK || echo TCP_FAIL
