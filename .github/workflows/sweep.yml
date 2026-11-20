@@ -27,8 +27,16 @@ jobs:
             echo "try $i $(date -u +%H:%M:%S) down"; sleep 10
           done
           if [ $OK = 0 ]; then echo "HOST_UNREACHABLE after $(($(date +%s)-T0))s"; exit 0; fi
-          ssh -i ~/.ssh/k -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=15 root@134.199.245.2 'bash -s' < /tmp/s.sh > /tmp/out.txt 2>&1
-          echo "exit=$?"
+          OK2=0
+          for j in $(seq 1 12); do
+            echo "SSH_TRY $j $(date -u +%H:%M:%S)"
+            timeout 25 ssh -i ~/.ssh/k -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=8 -o ConnectionAttempts=1 root@134.199.245.2 'bash -s' < /tmp/s.sh > /tmp/out.txt 2>&1
+            RC=$?
+            echo "SSH_RC=$RC lines=$(wc -l < /tmp/out.txt)"
+            if grep -q "=== host ===" /tmp/out.txt; then OK2=1; break; fi
+            sleep 8
+          done
+          echo "exit=$OK2"
           wc -l /tmp/out.txt
           cat /tmp/out.txt
       - name: artifact
